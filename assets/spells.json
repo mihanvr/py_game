@@ -1,0 +1,15 @@
+[
+  {
+    "id": "fireball",
+    "name": "fireball",
+    "damage": 4,
+    "cost": 6,
+    "bonus": null
+  },{
+    "id": "arcane_arrows",
+    "name": "arcane arrows",
+    "damage": 1,
+    "cost": 3,
+    "bonus": "random_arrows"
+  }
+]

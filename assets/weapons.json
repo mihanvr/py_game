@@ -1,0 +1,16 @@
+[
+  {
+    "id": "hand",
+    "name": "Без оружия",
+    "min_range": 1,
+    "max_range": 1,
+    "damage": 1
+  },
+  {
+    "id": "bow",
+    "name": "Лук",
+    "min_range": 5,
+    "max_range": 10,
+    "damage": 10
+  }
+]

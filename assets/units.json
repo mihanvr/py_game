@@ -1,0 +1,30 @@
+[
+  {
+    "class": "warrior",
+    "name": "Мечник",
+    "health": 10,
+    "position": 1,
+    "weapon": "hand"
+  },
+  {
+    "class": "warrior",
+    "name": "Лучник",
+    "health": 10,
+    "position": 5,
+    "weapon": "bow"
+  },
+  {
+    "class": "mage",
+    "name": "Маг",
+    "health": 5,
+    "position": 9,
+    "spell": "fireball"
+  },
+  {
+    "class": "mage",
+    "name": "Uber Маг",
+    "health": 50,
+    "position": 29,
+    "spell": "arcane_arrows"
+  }
+]
