@@ -69,7 +69,7 @@ class Unit:
             return True
         if command == 'look':
             units_list = [str(x) for x in self.battle_field.units]
-            response.append("\n".join(units_list))
+            response.append("<br>".join(units_list))
             return False
         if command == 'select target':
             targets = [unit for unit in self.battle_field.units if unit != self]

@@ -1,4 +1,7 @@
-from flask import Flask
+import string
+
+from flask import Flask, jsonify
+from flask import request
 from battle import test_class
 
 app = Flask(__name__)
@@ -6,7 +9,6 @@ app = Flask(__name__)
 
 @app.route('/command/<string:command>')
 def get_command(command: str):
-    print(command)
     do_command = test_class.do_command(command)
     response = "\n".join(do_command)
     return response
@@ -24,3 +26,5 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+

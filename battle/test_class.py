@@ -37,7 +37,7 @@ def create_new_game(response: List[str]) -> BattleField:
     return field
 
 
-def save_game(battle_field):
+def save_game(battle_field, response:List[str]):
     units = []
     for unit in battle_field.units:
         if isinstance(unit, Warrior):
@@ -60,15 +60,15 @@ def save_game(battle_field):
         'units': units,
         'active_unit_index': battle_field.active_unit_index,
     }
-    with open('save.json', 'w') as f:
+    with open('../client/save.json', 'w') as f:
         json.dump(root, f)
-    print('Игра сохранена')
+    response.append('Игра сохранена')
     return 0
 
 
 def load_saved_game(response: List[str]) -> BattleField:
     field = BattleField()
-    root = json.load(open('save.json', encoding='utf-8'))
+    root = json.load(open('../client/save.json', encoding='utf-8'))
     for unit_db in root['units']:
         field.add_unit(load_unit(unit_db))
     field.active_unit_index = root['active_unit_index']
@@ -93,7 +93,7 @@ def do_game_loop(command, response):
     unit = battle_field.units[battle_field.active_unit_index]
     # print('Ходит ' + unit.name)
     if command == 'save':
-        save_game(battle_field)
+        save_game(battle_field, response)
         return
     if not unit.do_command(command, response):
         response.append('unit not moved')
