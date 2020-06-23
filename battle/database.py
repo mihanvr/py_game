@@ -50,3 +50,11 @@ def load_spells() -> Dict[str, Spell]:
 
 weapons = load_weapons()
 spells = load_spells()
+
+
+def save_weapon(new_weapon: Weapon):
+    return None
+
+
+def delete_weapon(id: str):
+    return None
