@@ -34,15 +34,15 @@ def get_weapons_by_id(id: str):
 @app.route('/weapons', methods=['POST'])
 def create_weapon():
     data = request.json
-    new_weapon = database.load_weapon(data)
-    database.save_weapon(new_weapon)
-    return 'not implemented'
+    for weapon_db in data:
+        new_weapon = database.load_weapon(weapon_db)
+        database.save_weapon(new_weapon)
+    return 'Weapons created'
 
 
 @app.route('/weapons/<string:id>', methods=['DELETE'])
 def delete_weapon(id: str):
-    database.delete_weapon(id)
-    return 'not implemented'
+    return database.delete_weapon(id)
 
 
 if __name__ == '__main__':
