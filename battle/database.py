@@ -1,72 +1,65 @@
 import json
-from typing import Dict
 
 from battle.spells import Spell
 from battle.weapons import Weapon
 
 
-def load_weapon(weapon_db) -> Weapon:
-    weapon = Weapon(
-        name=weapon_db['name'],
-        min_range=weapon_db['min_range'],
-        max_range=weapon_db['max_range'],
-        damage=weapon_db['damage']
-    )
-    weapon.id = weapon_db['id']
-    return weapon
+class BaseRepository:
+    path: str
+    all_items = None
+    json_to_type_object = None
+
+    def __init__(self, path: str, json_to_type_object):
+        self.path = path
+        self.json_to_type_object = json_to_type_object
+
+    def save_all(self):
+        dict_list = list(map(lambda x: x.__dict__, self.all_items))
+        json_list = json.dumps(dict_list, ensure_ascii=False)
+        with open(self.path, 'w', encoding='utf-8') as file:
+            file.write(json_list)
+
+    def load_all(self):
+        self.all_items = list(map(self.json_to_type_object, json.load(open(self.path, encoding='utf-8'))))
+
+    def get_all(self):
+        return self.all_items
+
+    def get_one(self, id: str):
+        for x in self.all_items:
+            if x.id == id:
+                return x
+        return None
+
+    def delete_one(self, id: str):
+        for i in range(len(self.all_items)):
+            x = self.all_items[i]
+            if x.id == id:
+                del self.all_items[i]
+                self.save_all()
+                return x
+        return None
+
+    def create_one(self, json):
+        self.all_items.append(self.json_to_type_object(json))
+
+    def update_one(self, json):
+        existed: object = self.get_one(json['id'])
+        existed.__dict__.update(json)
+
+    def __getitem__(self, id: str):
+        return self.get_one(id)
+
+    def __contains__(self, id):
+        return self.get_one(id) is not None
 
 
-def load_weapons() -> Dict[str, Weapon]:
-    weapons_db = json.load(open('../assets/weapons.json', encoding='utf-8'))
-    weapons: Dict[str, Weapon] = {}
+weapon_repository = BaseRepository('../assets/weapons.json', lambda x: Weapon(**x))
+weapon_repository.load_all()
 
-    for weapon_db in weapons_db:
-        weapon = load_weapon(weapon_db)
-        weapons[weapon.id] = weapon
-
-    return weapons
+spell_repository = BaseRepository('../assets/spells.json', lambda x: Spell(**x))
+spell_repository.load_all()
 
 
-def load_spell(spell_db) -> Spell:
-    spell = Spell(
-        damage=spell_db['damage'],
-        cost=spell_db['cost'],
-        bonus=spell_db['bonus']
-    )
-    spell.id = spell_db['id']
-    spell.name = spell_db['name']
-    return spell
-
-
-def load_spells() -> Dict[str, Spell]:
-    spells_db = json.load(open('../assets/spells.json', encoding='utf-8'))
-    spells: Dict[str, Spell] = {}
-
-    for spell_db in spells_db:
-        spell = load_spell(spell_db)
-        spells[spell.id] = spell
-
-    return spells
-
-weapons = load_weapons()
-spells = load_spells()
-
-
-def save_weapon(new_weapon: Weapon):
-    with open('../assets/weapons.json') as weapon_db:
-        data = json.load(weapon_db)
-    weapon_dict: Dict = {'id': new_weapon.id, 'name': new_weapon.name, 'min_range': new_weapon.min_range, 'max_range': new_weapon.max_range, 'damage': new_weapon.damage}
-    data.append(weapon_dict)
-    with open('../assets/weapons.json', 'w') as weapon_db:
-        json.dump(data, weapon_db)
-    return None
-
-
-def delete_weapon(id: str):
-    weapons = json.loads(open('../assets/weapons.json').read())
-    for weapon in weapons:
-        if weapon['id'] == id:
-            weapons.pop(weapons.index(weapon))
-            json.dump(weapons, open('../assets/weapons.json', 'w'))
-            return 'Weapon deleted'
-    return 'Weapon not found'
+weapons = weapon_repository
+spells = spell_repository
