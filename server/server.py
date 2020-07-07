@@ -11,11 +11,27 @@ class BaseRepositoryEndpoints:
 
     def __init__(self, path: str, app: Flask, repository: BaseRepository):
         self.repository = repository
-        app.add_url_rule(path, self.get_all, methods=['GET'])
-
+        app.view_functions['self.get_all'] = self.get_all
+        app.view_functions['self.create_one'] = self.create_one
+        app.view_functions['self.update_one'] = self.update_one
+        app.add_url_rule(path, 'self.get_all', self.get_all, methods=['GET'])
+        app.add_url_rule(path, 'self.create_one', self.create_one, methods=['POST'])
+        app.add_url_rule(path, 'self.update_one', self.update_one, methods=['PUT'])
 
     def get_all(self):
         return jsonify(self.repository.get_all())
+
+    def create_one(self):
+        data = request.json
+        self.repository.create_one(data)
+        self.repository.save_all()
+        return 'Item created'
+
+    def update_one(self):
+        data = request.json
+        self.repository.update_one(data)
+        self.repository.save_all()
+        return'Item updated'
 
 
 @app.route('/command/<string:command>')
@@ -36,8 +52,8 @@ def index():
 
 
 # @app.route('/weapons', methods=['GET'])
-def get_weapons():
-    return jsonify(database.weapon_repository.get_all())
+# def get_weapons():
+#     return jsonify(database.weapon_repository.get_all())
 
 
 # @app.route('/weapons/<string:id>', methods=['GET'])
@@ -46,19 +62,19 @@ def get_weapons_by_id(id: str):
 
 
 # @app.route('/weapons', methods=['POST'])
-def create_weapon():
-    data = request.json
-    database.weapon_repository.create_one(data)
-    database.weapon_repository.save_all()
-    return 'Weapons created'
+# def create_weapon():
+#     data = request.json
+#     database.weapon_repository.create_one(data)
+#     database.weapon_repository.save_all()
+#     return 'Weapons created'
 
 
 # @app.route('/weapons', methods=['PUT'])
-def update_weapon():
-    data = request.json
-    database.weapon_repository.update_one(data)
-    database.weapon_repository.save_all()
-    return 'Weapons created'
+# def update_weapon():
+#     data = request.json
+#     database.weapon_repository.update_one(data)
+#     database.weapon_repository.save_all()
+#     return 'Weapons created'
 
 
 # @app.route('/weapons/<string:id>', methods=['DELETE'])
