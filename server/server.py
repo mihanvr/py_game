@@ -1,7 +1,10 @@
-from flask import Flask, request, jsonify
+from datetime import date
+
+from flask import Flask, request, jsonify, abort, Response
 
 from battle import test_class, database
 from battle.database import BaseRepository
+from battle.users import User
 
 app = Flask(__name__)
 
@@ -18,7 +21,7 @@ class BaseRepositoryEndpoints:
         app.add_url_rule(path + '/<string:id>', path + '.delete_one', self.delete_one, methods=['DELETE'])
 
     def get_one(self, id: str):
-        return jsonify(self.repository.get_one(id))
+        return jsonify(self.repository.find_one(id))
 
     def delete_one(self, id: str):
         if self.repository.delete_one(id) is not None:
@@ -31,7 +34,7 @@ class BaseRepositoryEndpoints:
 
     def create_one(self):
         data = request.json
-        self.repository.create_one(data)
+        self.repository.create_one_json(data)
         self.repository.save_all()
         return 'Item created'
 
@@ -44,7 +47,8 @@ class BaseRepositoryEndpoints:
 
 @app.route('/command/<string:command>')
 def get_command(command: str):
-    do_command = test_class.do_command(command)
+    user = get_user_from_request()
+    do_command = test_class.do_command(command, user)
     response = "\n".join(do_command)
     return response
 
@@ -57,6 +61,34 @@ def get_command_index():
 @app.route('/')
 def index():
     return get_command('look')
+
+
+@app.route('/auth')
+def auth():
+    data = request.json
+    login = data['login']
+    user = database.users_repository.find_by_login(login)
+    if user is None:
+        user = User(login=login, token=login + str(date.today()))
+        database.users_repository.create_one(user)
+        database.users_repository.save_all()
+    return jsonify(success=True, token=user.token)
+
+
+def get_user_from_request():
+    token = request.headers.get('Token', None)
+    if token is None:
+        abort(Response('token not found', status=400))
+    user = database.users_repository.find_by_token(token)
+    if user is None:
+        abort(Response('user not found by token', status=400))
+    return user
+
+
+@app.route('/check_token')
+def check_token():
+    user = get_user_from_request()
+    return jsonify(success=True, login=user.login)
 
 
 BaseRepositoryEndpoints('/weapons', app, database.weapon_repository)

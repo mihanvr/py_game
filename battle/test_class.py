@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from battle.database import weapons, spells
 from battle.units import Unit, Warrior, Mage, BattleField
+from battle.users import User
 
 
 def load_unit(unit_db: dict) -> Unit:
@@ -89,11 +90,14 @@ def load_game(command: str, response: List[str]):
 battle_field: Optional[BattleField] = None
 
 
-def do_game_loop(command, response):
+def do_game_loop(command, user: User, response):
     unit = battle_field.units[battle_field.active_unit_index]
     # print('Ходит ' + unit.name)
     if command == 'save':
         save_game(battle_field, response)
+        return
+    if (unit.login != user.login):
+        response.append('your not owner of this unit')
         return
     if not unit.do_command(command, response):
         response.append('unit not moved')
@@ -123,13 +127,13 @@ def do_game_loop(command, response):
     pass
 
 
-def do_command(command: str) -> List[str]:
+def do_command(command: str, user: User) -> List[str]:
     global battle_field
     response = []
     if battle_field is None:
         load_game(command, response)
     else:
-        do_game_loop(command, response)
+        do_game_loop(command, user, response)
     return response
 
 

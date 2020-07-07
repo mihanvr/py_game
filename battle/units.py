@@ -7,6 +7,7 @@ from battle.database import weapons, spells
 
 @dataclass
 class Unit:
+    login: str
     position: int = 0
     health: int = 10
     name: str = 'Melee'

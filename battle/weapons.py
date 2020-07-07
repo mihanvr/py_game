@@ -15,3 +15,5 @@ class Weapon:
 
     def can_attack(self, range: int):
         return self.min_range <= range <= self.max_range
+
+
