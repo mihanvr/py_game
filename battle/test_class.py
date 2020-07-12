@@ -2,7 +2,7 @@ import json
 from typing import List, Optional
 
 from battle.database import weapons, spells
-from battle.units import Unit, Warrior, Mage, BattleField
+from battle.units import Unit, Warrior, Mage, Archer, BattleField
 from battle.users import User
 
 
@@ -10,14 +10,21 @@ def load_unit(unit_db: dict) -> Unit:
     unit_class = unit_db['class']
     unit: Unit
     if unit_class == 'warrior':
-        unit = Warrior()
+        unit = Warrior(None)
+        weapon_id = unit_db.get('weapon', None)
+        if weapon_id is not None:
+            unit.weapon = weapons[weapon_id]
+        else:
+            unit.weapon = weapons['hand']
+    if unit_class == 'archer':
+        unit = Archer(None)
         weapon_id = unit_db.get('weapon', None)
         if weapon_id is not None:
             unit.weapon = weapons[weapon_id]
         else:
             unit.weapon = weapons['hand']
     elif unit_class == 'mage':
-        unit = Mage()
+        unit = Mage(None)
         spell_id = unit_db.get('spell', None)
         if spell_id is not None:
             unit.active_spell = spells[spell_id]
@@ -30,11 +37,9 @@ def load_unit(unit_db: dict) -> Unit:
 
 def create_new_game(response: List[str]) -> BattleField:
     field = BattleField()
-    units_db = json.load(open('../assets/units.json', encoding='utf-8'))
-
-    for unit_db in units_db:
-        field.add_unit(load_unit(unit_db))
-    response.append('new game created')
+    dummy_unit = Unit(None, 0, 0, 'dummy')
+    field.add_unit(dummy_unit)
+    response.append('new game created, type "create unit <unit_class>" to add units')
     return field
 
 
@@ -44,6 +49,14 @@ def save_game(battle_field, response:List[str]):
         if isinstance(unit, Warrior):
             units.append(
                 {"class": "warrior",
+                 "name": str(unit.name),
+                 "health": unit.health,
+                 "position": unit.position,
+                 "weapon": unit.weapon.id
+                 })
+        if isinstance(unit, Archer):
+            units.append(
+                {"class": "archer",
                  "name": str(unit.name),
                  "health": unit.health,
                  "position": unit.position,
@@ -84,7 +97,7 @@ def load_game(command: str, response: List[str]):
     elif command == 'load':
         battle_field = load_saved_game(response)
     else:
-        response.append('Введите "load", чтобы продолжить игру, или "new", чтобы загрузить юнитов из шаблона')
+        response.append('Введите "load", чтобы продолжить игру, или "new", чтобы создать новую')
 
 
 battle_field: Optional[BattleField] = None
@@ -96,11 +109,24 @@ def do_game_loop(command, user: User, response):
     if command == 'save':
         save_game(battle_field, response)
         return
-    if (unit.login != user.login):
-        response.append('your not owner of this unit')
+    if command.startswith('create unit'):
+        unit_class = str(command[12:])
+        print(unit_class)
+        root = json.load(open('../assets/units.json', encoding='utf-8'))
+        for un in root:
+            if un['class'] == unit_class:
+                new_unit = load_unit(un)
+                new_unit.login = user.login
+                battle_field.add_unit(new_unit)
+                response.append('Unit created')
+                return
+        response.append('Unknown class')
+        return
+    if (unit.login != user.login) and not command.startswith('create unit'):
+        response.append("You don't own this unit")
         return
     if not unit.do_command(command, response):
-        response.append('unit not moved')
+        response.append('Unit not moved')
         return
     battle_field.active_unit_index += 1
     if battle_field.active_unit_index < len(battle_field.units):

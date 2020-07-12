@@ -169,6 +169,28 @@ class Warrior(Unit):
                 return False
         return super().do_command(command, response)
 
+@dataclass
+class Archer(Unit):
+    weapon: Optional['Weapon'] = None
+
+    def get_weapon(self):
+        return self.weapon
+
+    def __str__(self) -> str:
+        return super().__str__() + ', weapon: ' + str(self.weapon.name)
+
+    def do_command(self, command: str, response: List[str]):
+        if command.startswith('choose weapon'):
+            w = str(command[14:])
+            if w in weapons:
+                self.weapon = weapons[w]
+                response.append('Выбрано оружие: ' + self.weapon.name)
+                return True
+            else:
+                response.append('Такого оружия не существует')
+                return False
+        return super().do_command(command, response)
+
 
 class Mage(Unit):
     mana: int = 10
