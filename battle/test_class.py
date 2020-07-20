@@ -37,8 +37,6 @@ def load_unit(unit_db: dict) -> Unit:
 
 def create_new_game(response: List[str]) -> BattleField:
     field = BattleField()
-    dummy_unit = Unit(None, 0, 0, 'dummy')
-    field.add_unit(dummy_unit)
     response.append('new game created, type "create unit <unit_class>" to add units')
     return field
 
@@ -104,14 +102,14 @@ battle_field: Optional[BattleField] = None
 
 
 def do_game_loop(command, user: User, response):
-    unit = battle_field.units[battle_field.active_unit_index]
+    if len(battle_field.units) != 0:
+        unit = battle_field.units[battle_field.active_unit_index]
     # print('Ходит ' + unit.name)
     if command == 'save':
         save_game(battle_field, response)
         return
     if command.startswith('create unit'):
         unit_class = str(command[12:])
-        print(unit_class)
         root = json.load(open('../assets/units.json', encoding='utf-8'))
         for un in root:
             if un['class'] == unit_class:
@@ -122,9 +120,10 @@ def do_game_loop(command, user: User, response):
                 return
         response.append('Unknown class')
         return
-    if (unit.login != user.login) and not command.startswith('create unit'):
-        response.append("You don't own this unit")
-        return
+    if len(battle_field.units) != 0:
+        if (unit.login != user.login) and not command.startswith('create unit'):
+            response.append("You don't own this unit")
+            return
     if not unit.do_command(command, response):
         response.append('Unit not moved')
         return
